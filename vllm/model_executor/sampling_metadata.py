@@ -374,7 +374,7 @@ class SamplingTensors:
     dry_bases: torch.Tensor
     dry_allowed_lengths: torch.Tensor
     dry_penalty_last_ns: torch.Tensor
-    dry_sequence_breakers: torch.Tensor
+    dry_sequence_breakers: List[List[str]]
     prompt_tokens: torch.Tensor
     output_tokens: torch.Tensor
 
@@ -399,7 +399,7 @@ class SamplingTensors:
         dry_bases: List[int] = []
         dry_allowed_lengths: List[int] = []
         dry_penalty_last_ns: List[int] = []
-        dry_sequence_breakers: List[array] = []
+        dry_sequence_breakers: List[List[str]] = []
         do_penalties = False
         do_top_p_top_k = False
         do_min_p = False
@@ -455,12 +455,12 @@ class SamplingTensors:
                 min_ps += [min_p] * prefill_len
                 presence_penalties += [0] * prefill_len
                 frequency_penalties += [0] * prefill_len
-                repetition_penalties += [1] * prefill_len
-                dry_multipliers += [0] * prefill_len
-                dry_bases += [0] * prefill_len
-                dry_allowed_lengths += [2] * prefill_len
-                dry_penalty_last_ns += [0] * prefill_len
-                dry_sequence_breakers += [[]] * prefill_len
+                repetition_penalties.append(1)
+                dry_multipliers.append(0)
+                dry_bases.append(0)
+                dry_allowed_lengths.append(2)
+                dry_penalty_last_ns.append(0)
+                dry_sequence_breakers.append([])
 
             if seq_group.do_sample:
                 sample_lens = len(seq_group.sample_indices)
@@ -471,12 +471,12 @@ class SamplingTensors:
                 min_ps += [min_p] * len(seq_ids)
                 presence_penalties += [p] * len(seq_ids)
                 frequency_penalties += [f] * len(seq_ids)
-                repetition_penalties += [r] * len(seq_ids)
-                dry_multipliers += [dry_multiplier] * len(seq_ids)
-                dry_bases += [dry_base] * len(seq_ids)
-                dry_allowed_lengths += [dry_allowed_length] * len(seq_ids)
-                dry_penalty_last_ns += [dry_penalty_last_n] * len(seq_ids)
-                dry_sequence_breakers += [dry_sequence_breakers] * len(seq_ids)
+                repetition_penalties.append(r)
+                dry_multipliers.append(dry_multiplier)
+                dry_bases.append(dry_base)
+                dry_allowed_lengths.append(dry_allowed_length)
+                dry_penalty_last_ns.append(dry_penalty_last_n)
+                dry_sequence_breakers.append(dry_sequence_breakers)
 
         if do_penalties:
             for seq_group in sampling_metadata.seq_groups:
@@ -531,7 +531,7 @@ class SamplingTensors:
         dry_bases: List[int],
         dry_allowed_lengths: List[int],
         dry_penalty_last_ns: List[int],
-        dry_sequence_breakers: List[array],
+        dry_sequence_breakers: List[List[str]],
         prompt_tokens: List[array],
         output_tokens: List[array],
         vocab_size: int,
@@ -630,12 +630,6 @@ class SamplingTensors:
             dtype=torch.int,
             pin_memory=pin_memory,
         )
-        dry_sequence_breakers_t = torch.tensor(
-            dry_sequence_breakers,
-            device="cpu",
-            dtype=torch.int,
-            pin_memory=pin_memory,
-        )
         # Because the memory is pinned, we can do non-blocking
         # transfer to device.
 
@@ -657,8 +651,7 @@ class SamplingTensors:
                                                          non_blocking=True),
             dry_penalty_last_ns=dry_penalty_last_ns_t.to(device=device,
                                                          non_blocking=True),
-            dry_sequence_breakers=dry_sequence_breakers_t.to(device=device,
-                                                             non_blocking=True),
+            dry_sequence_breakers=dry_sequence_breakers,
             prompt_tokens=prompt_t.to(device=device, non_blocking=True),
             output_tokens=output_t.to(device=device, non_blocking=True),
         )

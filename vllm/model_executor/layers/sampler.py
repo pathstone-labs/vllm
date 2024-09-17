@@ -1,4 +1,5 @@
 """A layer that samples the next tokens from the model's outputs."""
+from collections import defaultdict
 import itertools
 import warnings
 from dataclasses import dataclass
@@ -427,7 +428,69 @@ def _apply_dry(logits: torch.Tensor, prompt_tokens_tensor: torch.Tensor,
                dry_bases: torch.Tensor,
                dry_allowed_lengths: torch.Tensor,
                dry_penalty_last_ns: torch.Tensor,
-               dry_sequence_breakers: torch.Tensor) -> torch.Tensor:
+               dry_sequence_breakers: List[List[str]]) -> torch.Tensor:
+    num_seqs, _ = logits.shape
+
+    for i in range(num_seqs):
+        input_ids = torch.cat(
+            [prompt_tokens_tensor[i], output_tokens_tensor[i]], dim=0
+        )
+        input_ids = input_ids.tolist()
+        range_limit = min(dry_penalty_last_ns[i].item(), len(input_ids))
+        input_ids = input_ids[-range_limit:] if range_limit > 0 else input_ids
+
+        last_token = input_ids[-1]
+        if last_token in dry_sequence_breakers[i]:
+            continue
+
+        # Exclude the last token as it always matches.
+        match_indices = []
+        for idx, val in enumerate(input_ids[:-1]):
+            if val == last_token:
+                match_indices.append(idx)
+
+        # Stores the maximum matching sequence length
+        # for each token immediately following the sequence in the input.
+        match_lengths = {}
+
+        for idx in match_indices:
+            next_token = input_ids[idx + 1]
+
+            if next_token in dry_sequence_breakers[i]:
+                continue
+
+            # We have already found that `last_token` matches at this index,
+            # so the match is at least of length 1.
+            match_length = 1
+
+            # Extend the match backwards (at most to 50 to prevent exponent overflow at penalty calculation) (this cap also improves performance on worst case)
+            while match_length < 50:
+                j = i - match_length
+                if j < 0:
+                    # Start of input reached.
+                    break
+
+                previous_token = input_ids[-(match_length + 1)]
+                if input_ids[j] != previous_token:
+                    # Start of match reached.
+                    break
+
+                if previous_token in dry_sequence_breakers[i]:
+                    # Sequence-breaking token reached.
+                    break
+
+                match_length += 1
+
+            if next_token in match_lengths:
+                match_lengths[next_token] = max(match_length, match_lengths[next_token])
+            else:
+                match_lengths[next_token] = match_length
+
+        for token, match_length in match_lengths.items():
+            if match_length >= dry_allowed_lengths[i].item():
+                penalty = dry_multipliers[i].item() * dry_bases[i].item() ** (match_length - dry_allowed_lengths[i].item())
+                logits[i, token] -= penalty
+
     return logits
 
 
