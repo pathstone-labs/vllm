@@ -455,7 +455,7 @@ class SamplingTensors:
                 min_ps += [min_p] * prefill_len
                 presence_penalties += [0] * prefill_len
                 frequency_penalties += [0] * prefill_len
-                repetition_penalties.append(1)
+                repetition_penalties += [1] * prefill_len
                 dry_multipliers.append(0)
                 dry_bases.append(0)
                 dry_allowed_lengths.append(2)
@@ -471,7 +471,7 @@ class SamplingTensors:
                 min_ps += [min_p] * len(seq_ids)
                 presence_penalties += [p] * len(seq_ids)
                 frequency_penalties += [f] * len(seq_ids)
-                repetition_penalties.append(r)
+                repetition_penalties += [r] * len(seq_ids)
                 dry_multipliers.append(dry_multiplier)
                 dry_bases.append(dry_base)
                 dry_allowed_lengths.append(dry_allowed_length)
