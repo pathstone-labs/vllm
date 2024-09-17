@@ -374,7 +374,7 @@ class SamplingTensors:
     dry_bases: torch.Tensor
     dry_allowed_lengths: torch.Tensor
     dry_penalty_last_ns: torch.Tensor
-    dry_sequence_breakers: List[List[str]]
+    dry_sequence_breakers: List[List[int]]
     prompt_tokens: torch.Tensor
     output_tokens: torch.Tensor
 
@@ -399,7 +399,7 @@ class SamplingTensors:
         dry_bases: List[int] = []
         dry_allowed_lengths: List[int] = []
         dry_penalty_last_ns: List[int] = []
-        dry_sequence_breakers: List[List[str]] = []
+        dry_sequence_breakers: List[List[int]] = []
         do_penalties = False
         do_top_p_top_k = False
         do_min_p = False
@@ -531,7 +531,7 @@ class SamplingTensors:
         dry_bases: List[int],
         dry_allowed_lengths: List[int],
         dry_penalty_last_ns: List[int],
-        dry_sequence_breakers: List[List[str]],
+        dry_sequence_breakers: List[List[int]],
         prompt_tokens: List[array],
         output_tokens: List[array],
         vocab_size: int,

@@ -428,7 +428,7 @@ def _apply_dry(logits: torch.Tensor, prompt_tokens_tensor: torch.Tensor,
                dry_bases: torch.Tensor,
                dry_allowed_lengths: torch.Tensor,
                dry_penalty_last_ns: torch.Tensor,
-               dry_sequence_breakers: List[List[str]]) -> torch.Tensor:
+               dry_sequence_breakers: List[List[int]]) -> torch.Tensor:
     num_seqs, _ = logits.shape
 
     for i in range(num_seqs):
@@ -465,7 +465,7 @@ def _apply_dry(logits: torch.Tensor, prompt_tokens_tensor: torch.Tensor,
 
             # Extend the match backwards (at most to 50 to prevent exponent overflow at penalty calculation) (this cap also improves performance on worst case)
             while match_length < 50:
-                j = i - match_length
+                j = idx - match_length
                 if j < 0:
                     # Start of input reached.
                     break

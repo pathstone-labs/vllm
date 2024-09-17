@@ -185,7 +185,7 @@ class ChatCompletionRequest(OpenAIBaseModel):
     dry_base: float = 0.0
     dry_allowed_length: int = 2
     dry_penalty_last_n: int = 0
-    dry_sequence_breakers: Optional[List[str]] = []
+    dry_sequence_breakers: Optional[List[int]] = []
     early_stopping: bool = False
     stop_token_ids: Optional[List[int]] = Field(default_factory=list)
     include_stop_str_in_output: bool = False
@@ -469,7 +469,7 @@ class CompletionRequest(OpenAIBaseModel):
     dry_base: float = 0.0
     dry_allowed_length: int = 2
     dry_penalty_last_n: int = 0
-    dry_sequence_breakers: Optional[List[str]] = []
+    dry_sequence_breakers: Optional[List[int]] = []
     early_stopping: bool = False
     stop_token_ids: Optional[List[int]] = Field(default_factory=list)
     include_stop_str_in_output: bool = False
