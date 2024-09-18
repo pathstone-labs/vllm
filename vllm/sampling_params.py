@@ -134,11 +134,11 @@ class SamplingParams(
     top_p: float = 1.0
     top_k: int = -1
     min_p: float = 0.0
-    dry_multiplier: float = 0.0,
-    dry_base: float = 0.0,
-    dry_allowed_length: int = 2,
-    dry_penalty_last_n: int = 0,
-    dry_sequence_breakers: Optional[List[int]] = [],
+    dry_multiplier: float = 0.0
+    dry_base: float = 0.0
+    dry_allowed_length: int = 2
+    dry_penalty_last_n: int = 0
+    dry_sequence_breakers: Optional[List[int]] = []
     seed: Optional[int] = None
     use_beam_search: bool = False
     length_penalty: float = 1.0

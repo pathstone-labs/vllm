@@ -399,7 +399,7 @@ class SamplingTensors:
         dry_bases: List[int] = []
         dry_allowed_lengths: List[int] = []
         dry_penalty_last_ns: List[int] = []
-        dry_sequence_breakers: List[List[int]] = []
+        dry_sequence_breakers_list: List[List[int]] = []
         do_penalties = False
         do_top_p_top_k = False
         do_min_p = False
@@ -434,7 +434,7 @@ class SamplingTensors:
                 do_top_p_top_k = True
             if not do_min_p and min_p > _SAMPLING_EPS:
                 do_min_p = True
-            if not do_dry and dry_multiplier is not None:
+            if not do_dry and dry_multiplier is not None and dry_multiplier > 0:
                 do_dry = True
             if not do_penalties and (abs(p) >= _SAMPLING_EPS
                                      or abs(f) >= _SAMPLING_EPS
@@ -460,7 +460,7 @@ class SamplingTensors:
                 dry_bases.append(0)
                 dry_allowed_lengths.append(2)
                 dry_penalty_last_ns.append(0)
-                dry_sequence_breakers.append([])
+                dry_sequence_breakers_list.append([])
 
             if seq_group.do_sample:
                 sample_lens = len(seq_group.sample_indices)
@@ -476,7 +476,7 @@ class SamplingTensors:
                 dry_bases.append(dry_base)
                 dry_allowed_lengths.append(dry_allowed_length)
                 dry_penalty_last_ns.append(dry_penalty_last_n)
-                dry_sequence_breakers.append(dry_sequence_breakers)
+                dry_sequence_breakers_list.append(dry_sequence_breakers)
 
         if do_penalties:
             for seq_group in sampling_metadata.seq_groups:
